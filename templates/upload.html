@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Meeting Summarizer</title>
+    <style>
+        .header-image-container {
+            position: relative;
+            width: 100%;
+            height: 300px; /* Adjust the height as needed */
+            overflow: hidden;
+        }
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header-image {
+            width: 100%;
+            height: 100%;
+            background: url('{{ url_for('static', filename='meeting_image.jpg') }}') no-repeat center center;
+            background-size: cover;
+            filter: blur(5px);
+        }
+
+        .header-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgb(0, 0, 0);
+            font-size: 36px;
+            background-color: rgba(194, 243, 255, 0.135);
+            padding: 10px 20px;
+            border-radius: 15px;
+        }
+
+        #upload-options {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            width: 90%;
+            /* height: 70%; */
+        }
+
+        .option {
+            flex-basis: 45%;
+            padding: 10px;
+            border: 3px solid #000000;
+            border-radius: 50px;
+            /* width: 100px; */
+            height: 450px;
+            background-color: rgba(255, 240, 240, 0.539);
+            box-shadow: 5px 5px #000000; 
+            text-align: center;
+        }
+
+        .option-inner-text {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 100px;
+            font-size: 40px ;
+        }
+
+        #or-separator {
+            flex-basis: 10%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        #or-separator h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        #upload-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #record-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 150px;
+            font-size: 40px ;
+        }
+        
+        input[type=file]{
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            font-size: 20px;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+
+        #record-controls button {
+            margin: 0 5px;
+            font-size: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-image-container">
+        <div class="header-image"></div>
+        <div class="header-text">
+            <a href="{{ url_for('upload_file') }}" > <h1>Meeting Summarizer</h1></a>
+        </div>
+    </div>
+    <nav>
+        <a href="{{ url_for('about') }}" style="font-size: 35px; color: black"><b>About</b></a>
+    </nav>
+    <div id="upload-options">
+        <div class="option">
+            <h1>Upload Audio File</h1>
+            <div class="option-inner-text">
+            <form id="upload-form" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" >
+                <label for="file" style="font-size: 35px;">Select audio file</label>
+                <input type="file" name="file" id="file" required >
+            </form>
+            </div>
+        </div>
+        <div class="option">
+            <h1>Record Audio</h1>
+            <div id="record-controls">
+                <button id="start-recording">Start Recording</button>
+                <button id="stop-recording" disabled>Stop Recording</button>
+            </div>
+            <audio id="recorded-audio" controls style="display: none;"></audio>
+        </div>
+    </div>
+    <button id="upload-button" disabled>Upload</button>
+    <div id="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading... Please wait.</p>
+    </div>
+    <script>
+        let mediaStream;
+        let mediaRecorder;
+        let chunks = [];
+
+        const startRecording = () => {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaStream = stream;
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = e => {
+                        chunks.push(e.data);
+                    };
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'audio/mp3' });
+                        const audioUrl = URL.createObjectURL(blob);
+                        const audioElement = document.getElementById('recorded-audio');
+                        audioElement.src = audioUrl;
+                        audioElement.style.display = 'block';
+                    };
+                    mediaRecorder.start();
+                    document.getElementById('start-recording').disabled = true;
+                    document.getElementById('stop-recording').disabled = false;
+                })
+                .catch(err => {
+                    console.error('Error accessing microphone:', err);
+                });
+        };
+
+        const stopRecording = () => {
+            mediaRecorder.stop();
+            mediaStream.getTracks().forEach(track => track.stop());
+            document.getElementById('start-recording').disabled = false;
+            document.getElementById('stop-recording').disabled = true;
+        };
+
+        document.getElementById('start-recording').addEventListener('click', startRecording);
+        document.getElementById('stop-recording').addEventListener('click', stopRecording);
+
+        // Enable/disable upload button based on selected option
+        const uploadButton = document.getElementById('upload-button');
+        const fileInput = document.getElementById('file');
+        const startRecordingButton = document.getElementById('start-recording');
+        const stopRecordingButton = document.getElementById('stop-recording');
+
+        fileInput.addEventListener('change', () => {
+            uploadButton.disabled = false;
+            startRecordingButton.disabled = true;
+            stopRecordingButton.disabled = true;
+        });
+
+        startRecordingButton.addEventListener('click', () => {
+            uploadButton.disabled = false;
+            fileInput.disabled = true;
+        });
+
+        stopRecordingButton.addEventListener('click', () => {
+            uploadButton.disabled = false;
+            fileInput.disabled = true;
+        });
+
+        // Handle upload button click event
+uploadButton.addEventListener('click', () => {
+    document.getElementById('loading').style.display = 'flex';
+    if (mediaRecorder && chunks.length > 0) {
+        handleLiveRecordingUpload();
+    } else if (fileInput.files.length > 0) {
+        handlePreRecordedUpload(fileInput.files[0].name);
+    } else {
+        console.error('No recorded audio to upload');
+    }
+});
+
+function handleLiveRecordingUpload() {
+    const blob = new Blob(chunks, { type: 'audio/mp3' });
+    const formData = new FormData();
+    formData.append('audio', blob, 'recorded_audio.mp3');
+
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Live recording uploaded successfully');
+            resetRecordingVariables();
+            redirectToSummaryPage('recorded_audio.mp3');
+        } else {
+            console.error('Failed to upload live recording');
+        }
+    })
+    .catch(error => {
+        console.error('Error uploading live recording:', error);
+    });
+}
+
+function handlePreRecordedUpload(fileName) {
+    const formData = new FormData();
+    const file = fileInput.files[0];
+    formData.append('file', file);
+
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Pre-recorded audio uploaded successfully');
+            redirectToSummaryPage(fileName);
+        } else {
+            console.error('Failed to upload pre-recorded audio');
+        }
+    })
+    .catch(error => {
+        console.error('Error uploading pre-recorded audio:', error);
+    });
+}
+
+function resetRecordingVariables() {
+    chunks = [];
+    mediaRecorder = null;
+    mediaStream = null;
+}
+
+function redirectToSummaryPage(fileName) {
+    console.log("filename")
+    window.location.href = '/summary/' + fileName;
+}
+
+    </script>
+</body>
+</html>

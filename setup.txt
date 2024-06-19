@@ -1,0 +1,36 @@
+Steps to run the code without any errors/problems:
+
+
+1. (For Windows Devices) Install Chocolatey from https://chocolatey.org/install in order to install ffmpeg on your device.
+	Once that is done, open terminal/powershell with admin privileges and run the following command:
+		choco install ffmpeg
+	(For Ubuntu) Use: sudo apt update && sudo apt install ffmpeg
+	(For Arch Linux) Use: sudo pacman -S ffmpeg
+	(For MacOS): Use Homebrew and use the command: brew install ffmpeg
+
+2. Make sure you create a separate environment to run this app.
+
+3. Download the dependencies for using this app from requirements.txt using the below command:
+	pip install -r requirements.txt
+
+4. Before running the app, go to your terminal with the activated environment and run the following command:
+	ollama run gemma
+ Once the model and its dependencies are downloaded, press ctrl+d to exit the cli of the LLM.
+
+5. Now start the app by running the following command:
+	python app.py
+
+6. Use the URL displayed in the terminal output and open it in your browser.
+
+7. Upload the audio file of the meeting and press on upload.
+
+8. It will take a long time as it is running locally, so please wait.
+
+9. Once the loading is done, you can see the meeting summary on your browser.
+
+10. You can check the entire process's time after summary generation in the terminal while the flask app is running. 
+
+
+For faster inference times:
+- Make sure you install pytorch gpu version and the required cuda libraries in your virtual environment
+- The audio-transcription model will use the GPU by default if cuda device is detected which will increase inference time.

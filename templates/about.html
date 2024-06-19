@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>About - Meeting Summarizer</title>
+    <style>
+        .header-image-container {
+            position: relative;
+            width: 100%;
+            height: 300px; /* Adjust the height as needed */
+            overflow: hidden;
+        }
+
+        .header-image {
+            width: 100%;
+            height: 100%;
+            background: url('{{ url_for('static', filename='meeting_image.jpg') }}') no-repeat center center;
+            background-size: cover;
+            filter: blur(5px);
+        }
+
+        .content {
+            font-size: 18px;
+        }
+
+        .header-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgb(0, 0, 0);
+            font-size: 36px;
+            background-color: rgba(194, 243, 255, 0.135);
+            padding: 10px 20px;
+            border-radius: 15px;
+        }
+/* 
+        .content li{
+            list-style-type: circle;
+        } */
+
+        ul.subpoints {
+            list-style-type: circle;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-image-container">
+        <div class="header-image"></div>
+        <div class="header-text">
+            
+            <a href="{{ url_for('upload_file') }}" > <h1>Meeting Summarizer</h1></a>
+        </div>
+    </div>
+    <nav>
+        <a href="{{ url_for('upload_file') }}" style ="font-size: 35px; color:black"><b>Home</b></a>
+    </nav>
+    <div class="content">
+        <h2>About This App</h2>
+        <!-- <ul> -->
+        <li>This app allows users to upload audio files of meetings and generates a text summary of the meeting notes. </li>
+        <br> 
+        <li> It's designed to help professionals save time by providing quick and accurate summaries of their meetings.</li>
+        <br>
+        <li>The app uses advanced audio processing and natural language processing techniques to transcribe and summarize the audio content.</li>
+        <br>
+        <li>Key Features:
+           <ul class="subpoints">
+            <li><b>Accurate Transcriptions:</b> Utilizes state-of-the-art speech recognition technology to ensure high accuracy in transcriptions.</li>
+            <li><b>Automatic Summarization:</b> Generates concise summaries that capture the key points and action items from your meetings.</li>
+            <li><b>User-Friendly Interface:</b> Simple and intuitive interface that allows users to upload and manage their audio files effortlessly.</li>
+        </ul> 
+        </li>
+        <!-- </ul> -->
+    </div>
+</body>
+</html>
